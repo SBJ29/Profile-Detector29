@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PS Detector • Social Profile Verifier</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --bg: #0a0a15;
+        --card: #141426;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --green: #10b981;
+        --yellow: #f59e0b;
+        --red: #ef4444;
+        --border: #1e293b;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 1.5rem;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #a5b4fc, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .app-name {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #c7d2fe;
+      } /* Right side app name */
+      .auth-section,
+      .scanner-section {
+        background: var(--card);
+        border-radius: 1.2rem;
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+      }
+      .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+      .auth-form input {
+        padding: 1rem;
+        font-size: 1.1rem;
+        background: #0f172a;
+        border: 1px solid var(--border);
+        border-radius: 0.8rem;
+        color: white;
+        outline: none;
+      }
+      .auth-form input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+      }
+      .auth-form button {
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.8rem;
+        cursor: pointer;
+        transition: 0.25s;
+      }
+      .auth-form button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+      .auth-form .toggle {
+        text-align: center;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      #reader {
+        width: 100%;
+        max-width: 460px;
+        margin: 0 auto 1.8rem;
+        border: 4px solid var(--primary);
+        border-radius: 1rem;
+        overflow: hidden;
+      }
+      .input-group {
+        display: flex;
+        gap: 1rem;
+        max-width: 700px;
+        margin: 0 auto;
+        align-items: center;
+      }
+      #searchInput {
+        flex: 1;
+        padding: 1rem 1.3rem;
+        font-size: 1.1rem;
+        background: #0f172a;
+        border: 1px solid var(--border);
+        border-radius: 0.8rem;
+        color: white;
+        outline: none;
+      }
+      #searchInput:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+      }
+      button {
+        padding: 0 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.8rem;
+        cursor: pointer;
+        transition: 0.25s;
+      }
+      button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+      #loading {
+        display: none;
+        text-align: center;
+        padding: 4rem 0;
+        font-size: 1.3rem;
+        color: var(--muted);
+      }
+      #resultDashboard {
+        display: none;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 1.8rem;
+        margin-top: 2.5rem;
+      }
+      .profile-card {
+        background: var(--card);
+        border-radius: 1.2rem;
+        padding: 1.8rem;
+        border: 1px solid var(--border);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .profile-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.4rem;
+      }
+      .card-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #c7d2fe;
+      }
+      .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .original {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--green);
+      }
+      .fake {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--red);
+      }
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0;
+        font-size: 1rem;
+      }
+      .stat-label {
+        color: var(--muted);
+      }
+      .stat-value {
+        font-weight: 600;
+        color: white;
+      }
+      footer {
+        text-align: center;
+        margin-top: 4rem;
+        padding: 2rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+        border-top: 1px solid var(--border);
+      }
+      @media (max-width: 768px) {
+        .input-group {
+          flex-direction: column;
+        }
+        button {
+          padding: 1rem;
+        }
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>PS Detector</h1>
+        <div class="app-name">PS DETECTOR</div>
+        <!-- Right side app name -->
+      </header>
+
+      <section id="authSection" class="auth-section">
+        <form id="authForm" class="auth-form">
+          <input type="text" id="username" placeholder="Username" required />
+          <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            required
+          />
+          <button type="submit" id="authBtn">Login</button>
+        </form>
+        <p class="toggle" id="toggleAuth">Don't have an account? Register</p>
+        <p style="color: var(--muted); text-align: center">
+          Samples: THENEEKA/123, MALINIDEVI/456
+        </p>
+      </section>
+
+      <section id="scannerSection" class="scanner-section hidden">
+        <div id="reader"></div>
+        <div class="input-group">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Enter platform:username or URL (e.g., instagram:instagram or https://www.instagram.com/instagram)"
+          />
+          <button id="detectBtn">Detect Profile</button>
+        </div>
+        <p style="color: var(--muted); margin-top: 1rem">
+          Samples: instagram:instagram (Original), instagram:randomtestuser123
+          (Fake), facebook:facebook (Original), facebook:nonexistentfbuser
+          (Fake).
+        </p>
+      </section>
+
+      <div id="loading" class="hidden">
+        <i class="fas fa-spinner fa-spin"></i> Detecting profile...
+      </div>
+
+      <div id="resultDashboard" class="hidden">
+        <div class="profile-card">
+          <div class="card-header">
+            <div class="card-title">Profile Status</div>
+            <div class="badge" id="statusBadge">—</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-label">Platform</div>
+            <div class="stat-value" id="platformValue">—</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-label">Username</div>
+            <div class="stat-value" id="usernameValue">—</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-label">Status</div>
+            <div class="stat-value" id="statusValue">—</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-label">Profile URL</div>
+            <div class="stat-value" id="urlValue">—</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-label">Note</div>
+            <div class="stat-value" id="noteValue">—</div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        PS Detector • Social Profile Verifier • Educational Use Only
+      </footer>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+      const scanner = new Html5Qrcode("reader");
+      let isScanning = false;
+      const qrConfig = { fps: 12, qrbox: { width: 340, height: 340 } };
+
+      async function startQR() {
+        try {
+          await scanner.start(
+            { facingMode: "environment" },
+            qrConfig,
+            (text) => {
+              document.getElementById("searchInput").value = text.trim();
+              detectProfile();
+              stopQR();
+            },
+            () => {}
+          );
+          isScanning = true;
+        } catch (err) {
+          console.log("QR start failed:", err);
+        }
+      }
+
+      function stopQR() {
+        if (isScanning) {
+          scanner.stop();
+          isScanning = false;
+        }
+      }
+
+      // Auth logic
+      const authForm = document.getElementById("authForm");
+      const authBtn = document.getElementById("authBtn");
+      const toggleAuth = document.getElementById("toggleAuth");
+      let isRegister = false;
+
+      toggleAuth.addEventListener("click", () => {
+        isRegister = !isRegister;
+        authBtn.textContent = isRegister ? "Register" : "Login";
+        toggleAuth.textContent = isRegister
+          ? "Already have an account? Login"
+          : "Don't have an account? Register";
+      });
+
+      authForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        if (!username || !password) {
+          alert("Enter username and password");
+          return;
+        }
+
+        const endpoint = isRegister ? "/api/register" : "/api/login";
+        try {
+          const resp = await fetch(`http://localhost:5000${endpoint}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await resp.json();
+          if (data.error) throw new Error(data.error);
+
+          alert(data.message);
+          if (!isRegister) {
+            document.getElementById("authSection").classList.add("hidden");
+            document
+              .getElementById("scannerSection")
+              .classList.remove("hidden");
+            startQR();
+          }
+        } catch (err) {
+          alert("Auth failed: " + err.message);
+        }
+      });
+
+      // Detect profile
+      async function detectProfile() {
+        const input = document.getElementById("searchInput").value.trim();
+        if (!input) {
+          alert("Enter platform:username or URL");
+          return;
+        }
+
+        let platform, inputValue;
+        if (input.includes(":")) {
+          [platform, inputValue] = input.split(":").map((s) => s.trim());
+        } else if (input.includes("instagram.com")) {
+          platform = "instagram";
+          inputValue = input;
+        } else if (input.includes("facebook.com")) {
+          platform = "facebook";
+          inputValue = input;
+        } else {
+          alert("Invalid input. Use platform:username or full URL");
+          return;
+        }
+
+        document.getElementById("loading").classList.remove("hidden");
+        document.getElementById("resultDashboard").classList.add("hidden");
+
+        try {
+          const resp = await fetch("http://localhost:5000/api/detect_profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ platform, input_value: inputValue }),
+          });
+          const data = await resp.json();
+
+          if (data.error) throw new Error(data.error);
+
+          document.getElementById("platformValue").textContent = data.platform;
+          document.getElementById("usernameValue").textContent = data.username;
+          document.getElementById("statusValue").textContent = data.status;
+          document.getElementById(
+            "urlValue"
+          ).innerHTML = `<a href="${data.profile_url}" target="_blank">${data.profile_url}</a>`;
+          document.getElementById("noteValue").textContent = data.note;
+
+          const badge = document.getElementById("statusBadge");
+          badge.textContent = data.status.split(" ")[0];
+          badge.className = `badge ${
+            data.status.includes("Original") ? "original" : "fake"
+          }`;
+
+          document.getElementById("loading").classList.add("hidden");
+          document.getElementById("resultDashboard").classList.remove("hidden");
+        } catch (err) {
+          alert("Detection failed: " + err.message);
+          document.getElementById("loading").classList.add("hidden");
+        }
+      }
+
+      document
+        .getElementById("detectBtn")
+        .addEventListener("click", detectProfile);
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) stopQR();
+        else if (
+          !isScanning &&
+          !document
+            .getElementById("scannerSection")
+            .classList.contains("hidden")
+        )
+          startQR();
+      });
+    </script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PS Detector • Blockchain Profile Scanner</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <style>
+      :root {
+        --bg: #0a0a15;
+        --card: #141426;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --green: #10b981;
+        --yellow: #f59e0b;
+        --red: #ef4444;
+        --border: #1e293b;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 1.5rem;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #a5b4fc, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .scanner-section {
+        background: var(--card);
+        border-radius: 1.2rem;
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+      }
+
+      #reader {
+        width: 100%;
+        max-width: 460px;
+        margin: 0 auto 1.8rem;
+        border: 4px solid var(--primary);
+        border-radius: 1rem;
+        overflow: hidden;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 1rem;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      input {
+        flex: 1;
+        padding: 1rem 1.3rem;
+        font-size: 1.1rem;
+        background: #0f172a;
+        border: 1px solid var(--border);
+        border-radius: 0.8rem;
+        color: white;
+        outline: none;
+      }
+
+      input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+      }
+
+      button {
+        padding: 0 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.8rem;
+        cursor: pointer;
+        transition: 0.25s;
+      }
+
+      button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+
+      #resultDashboard {
+        display: none;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 1.8rem;
+        margin-top: 2.5rem;
+      }
+
+      .profile-card {
+        background: var(--card);
+        border-radius: 1.2rem;
+        padding: 1.8rem;
+        border: 1px solid var(--border);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      .profile-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.4rem;
+      }
+
+      .card-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #c7d2fe;
+      }
+
+      .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .safe {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--green);
+      }
+      .warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--yellow);
+      }
+      .danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--red);
+      }
+
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0;
+        font-size: 1rem;
+      }
+
+      .stat-label {
+        color: var(--muted);
+      }
+      .stat-value {
+        font-weight: 600;
+        color: white;
+      }
+
+      .big-balance {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin: 1.8rem 0;
+        color: #a5b4fc;
+        text-align: center;
+      }
+
+      #loading {
+        display: none;
+        text-align: center;
+        padding: 4rem 0;
+        font-size: 1.3rem;
+        color: var(--muted);
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 4rem;
+        padding: 2rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+        border-top: 1px solid var(--border);
+      }
+
+      @media (max-width: 768px) {
+        .input-group {
+          flex-direction: column;
+        }
+        button {
+          padding: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>PS Detector</h1>
+        <button id="resetBtn">
+          <i class="fas fa-sync-alt"></i> Reset Scan
+        </button>
+      </header>
+
+      <section class="scanner-section">
+        <div id="reader"></div>
+
+        <div class="input-group">
+          <input
+            type="text"
+            id="addressInput"
+            placeholder="Paste address (0x...) or scan QR code"
+          />
+          <button id="analyzeBtn">Analyze Profile</button>
+        </div>
+      </section>
+
+      <div id="loading">
+        <i class="fas fa-spinner fa-spin"></i> Scanning blockchain profile...
+      </div>
+
+      <div id="resultDashboard">
+        <!-- Main Profile Card -->
+        <div class="profile-card">
+          <div class="card-header">
+            <div class="card-title">Wallet Profile</div>
+            <div class="badge safe" id="riskBadge">Safe</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Address</div>
+            <div
+              class="stat-value"
+              id="addrValue"
+              style="word-break: break-all"
+            >
+              —
+            </div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Network</div>
+            <div class="stat-value">Ethereum</div>
+          </div>
+
+          <div class="big-balance" id="balanceValue">—.—— ETH</div>
+
+          <div class="stat-row">
+            <div class="stat-label">Last Scanned</div>
+            <div class="stat-value" id="timeValue">—</div>
+          </div>
+        </div>
+
+        <!-- Insights Card -->
+        <div class="profile-card">
+          <div class="card-header">
+            <div class="card-title">Quick Insights</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Transactions (approx.)</div>
+            <div class="stat-value" id="txValue">—</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Risk Score</div>
+            <div class="stat-value" id="scoreValue">— / 100</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Known Labels</div>
+            <div class="stat-value" id="labelsValue">None detected</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Inspired by</div>
+            <div class="stat-value">DexCheck • Zerion • De.Fi</div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        PS Detector • Real-time Blockchain Address Scanner • Educational use •
+        Powered by public APIs (Etherscan)
+      </footer>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+      // =============================================
+      const scanner = new Html5Qrcode("reader");
+      let isScanning = false;
+
+      const qrConfig = { fps: 12, qrbox: { width: 340, height: 340 } };
+
+      async function startQR() {
+        try {
+          await scanner.start(
+            { facingMode: "environment" },
+            qrConfig,
+            (text) => {
+              document.getElementById("addressInput").value = text.trim();
+              analyzeAddress();
+              stopQR();
+            },
+            () => {}
+          );
+          isScanning = true;
+        } catch (err) {
+          console.log("QR start failed:", err);
+        }
+      }
+
+      function stopQR() {
+        if (isScanning) {
+          scanner.stop();
+          isScanning = false;
+        }
+      }
+
+      // =============================================
+      async function analyzeAddress() {
+        const addr = document.getElementById("addressInput").value.trim();
+        if (!addr || !addr.startsWith("0x") || addr.length !== 42) {
+          alert("Enter valid Ethereum address (starts with 0x, 42 chars)");
+          return;
+        }
+
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("resultDashboard").style.display = "none";
+
+        try {
+          // REPLACE with your real Etherscan API key
+          const apiKey = "YOUR_ETHERSCAN_API_KEY_HERE";
+          const url = `https://api.etherscan.io/api?module=account&action=balance&address=${addr}&tag=latest&apikey=${apiKey}`;
+
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.status !== "1")
+            throw new Error(data.message || "API failed");
+
+          const balWei = BigInt(data.result);
+          const balEth = Number(balWei) / 1e18;
+
+          // Update dashboard
+          document.getElementById("addrValue").textContent = addr;
+          document.getElementById("balanceValue").textContent =
+            balEth.toFixed(4) + " ETH";
+          document.getElementById("timeValue").textContent =
+            new Date().toLocaleString();
+
+          // Placeholder / mock values (extend with more APIs: tx list, labels, risk)
+          document.getElementById("txValue").textContent =
+            Math.floor(Math.random() * 500) + " tx";
+          document.getElementById("scoreValue").textContent =
+            Math.random() > 0.8 ? "92 / 100" : "24 / 100";
+          document.getElementById("labelsValue").textContent =
+            Math.random() > 0.7 ? "Exchange-related" : "No tags";
+
+          // Simple risk mock
+          const badge = document.getElementById("riskBadge");
+          badge.textContent = Math.random() > 0.85 ? "High Risk" : "Safe";
+          badge.className = `badge ${Math.random() > 0.85 ? "danger" : "safe"}`;
+
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("resultDashboard").style.display = "grid";
+        } catch (err) {
+          alert("Failed to fetch profile: " + err.message);
+          document.getElementById("loading").style.display = "none";
+        }
+      }
+
+      // Events
+      document.getElementById("analyzeBtn").onclick = analyzeAddress;
+
+      document.getElementById("resetBtn").onclick = () => {
+        document.getElementById("addressInput").value = "";
+        document.getElementById("resultDashboard").style.display = "none";
+        startQR();
+      };
+
+      // Init
+      startQR();
+
+      // Pause/resume scanner for battery/privacy
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) stopQR();
+        else if (!isScanning) startQR();
+      });
+    </script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PS Detector • Blockchain Profile Scanner</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <style>
+      :root {
+        --bg: #0a0a15;
+        --card: #141426;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --green: #10b981;
+        --yellow: #f59e0b;
+        --red: #ef4444;
+        --border: #1e293b;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 1.5rem;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #a5b4fc, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .scanner-section {
+        background: var(--card);
+        border-radius: 1.2rem;
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+      }
+
+      #reader {
+        width: 100%;
+        max-width: 460px;
+        margin: 0 auto 1.8rem;
+        border: 4px solid var(--primary);
+        border-radius: 1rem;
+        overflow: hidden;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 1rem;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      input {
+        flex: 1;
+        padding: 1rem 1.3rem;
+        font-size: 1.1rem;
+        background: #0f172a;
+        border: 1px solid var(--border);
+        border-radius: 0.8rem;
+        color: white;
+        outline: none;
+      }
+
+      input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+      }
+
+      button {
+        padding: 0 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.8rem;
+        cursor: pointer;
+        transition: 0.25s;
+      }
+
+      button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+
+      #resultDashboard {
+        display: none;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 1.8rem;
+        margin-top: 2.5rem;
+      }
+
+      .profile-card {
+        background: var(--card);
+        border-radius: 1.2rem;
+        padding: 1.8rem;
+        border: 1px solid var(--border);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      .profile-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.4rem;
+      }
+
+      .card-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #c7d2fe;
+      }
+
+      .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .safe {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--green);
+      }
+      .warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--yellow);
+      }
+      .danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--red);
+      }
+
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0;
+        font-size: 1rem;
+      }
+
+      .stat-label {
+        color: var(--muted);
+      }
+      .stat-value {
+        font-weight: 600;
+        color: white;
+      }
+
+      .big-balance {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin: 1.8rem 0;
+        color: #a5b4fc;
+        text-align: center;
+      }
+
+      #loading {
+        display: none;
+        text-align: center;
+        padding: 4rem 0;
+        font-size: 1.3rem;
+        color: var(--muted);
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 4rem;
+        padding: 2rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+        border-top: 1px solid var(--border);
+      }
+
+      @media (max-width: 768px) {
+        .input-group {
+          flex-direction: column;
+        }
+        button {
+          padding: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>PS Detector</h1>
+        <button id="resetBtn">
+          <i class="fas fa-sync-alt"></i> Reset Scan
+        </button>
+      </header>
+
+      <section class="scanner-section">
+        <div id="reader"></div>
+
+        <div class="input-group">
+          <input
+            type="text"
+            id="addressInput"
+            placeholder="Paste address (0x...) or scan QR code"
+          />
+          <button id="analyzeBtn">Analyze Profile</button>
+        </div>
+      </section>
+
+      <div id="loading">
+        <i class="fas fa-spinner fa-spin"></i> Scanning blockchain profile...
+      </div>
+
+      <div id="resultDashboard">
+        <!-- Main Profile Card -->
+        <div class="profile-card">
+          <div class="card-header">
+            <div class="card-title">Wallet Profile</div>
+            <div class="badge safe" id="riskBadge">Safe</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Address</div>
+            <div
+              class="stat-value"
+              id="addrValue"
+              style="word-break: break-all"
+            >
+              —
+            </div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Network</div>
+            <div class="stat-value">Ethereum</div>
+          </div>
+
+          <div class="big-balance" id="balanceValue">—.—— ETH</div>
+
+          <div class="stat-row">
+            <div class="stat-label">Last Scanned</div>
+            <div class="stat-value" id="timeValue">—</div>
+          </div>
+        </div>
+
+        <!-- Insights Card -->
+        <div class="profile-card">
+          <div class="card-header">
+            <div class="card-title">Quick Insights</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Transactions (approx.)</div>
+            <div class="stat-value" id="txValue">—</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Risk Score</div>
+            <div class="stat-value" id="scoreValue">— / 100</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Known Labels</div>
+            <div class="stat-value" id="labelsValue">None detected</div>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-label">Inspired by</div>
+            <div class="stat-value">DexCheck • Zerion • De.Fi</div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        PS Detector • Real-time Blockchain Address Scanner • Educational use •
+        Powered by public APIs (Etherscan)
+      </footer>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+      // =============================================
+      const scanner = new Html5Qrcode("reader");
+      let isScanning = false;
+
+      const qrConfig = { fps: 12, qrbox: { width: 340, height: 340 } };
+
+      async function startQR() {
+        try {
+          await scanner.start(
+            { facingMode: "environment" },
+            qrConfig,
+            (text) => {
+              document.getElementById("addressInput").value = text.trim();
+              analyzeAddress();
+              stopQR();
+            },
+            () => {}
+          );
+          isScanning = true;
+        } catch (err) {
+          console.log("QR start failed:", err);
+        }
+      }
+
+      function stopQR() {
+        if (isScanning) {
+          scanner.stop();
+          isScanning = false;
+        }
+      }
+
+      // =============================================
+      async function analyzeAddress() {
+        const addr = document.getElementById("addressInput").value.trim();
+        if (!addr || !addr.startsWith("0x") || addr.length !== 42) {
+          alert("Enter valid Ethereum address (starts with 0x, 42 chars)");
+          return;
+        }
+
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("resultDashboard").style.display = "none";
+
+        try {
+          // REPLACE with your real Etherscan API key
+          const apiKey = "YOUR_ETHERSCAN_API_KEY_HERE";
+          const url = `https://api.etherscan.io/api?module=account&action=balance&address=${addr}&tag=latest&apikey=${apiKey}`;
+
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.status !== "1")
+            throw new Error(data.message || "API failed");
+
+          const balWei = BigInt(data.result);
+          const balEth = Number(balWei) / 1e18;
+
+          // Update dashboard
+          document.getElementById("addrValue").textContent = addr;
+          document.getElementById("balanceValue").textContent =
+            balEth.toFixed(4) + " ETH";
+          document.getElementById("timeValue").textContent =
+            new Date().toLocaleString();
+
+          // Placeholder / mock values (extend with more APIs: tx list, labels, risk)
+          document.getElementById("txValue").textContent =
+            Math.floor(Math.random() * 500) + " tx";
+          document.getElementById("scoreValue").textContent =
+            Math.random() > 0.8 ? "92 / 100" : "24 / 100";
+          document.getElementById("labelsValue").textContent =
+            Math.random() > 0.7 ? "Exchange-related" : "No tags";
+
+          // Simple risk mock
+          const badge = document.getElementById("riskBadge");
+          badge.textContent = Math.random() > 0.85 ? "High Risk" : "Safe";
+          badge.className = `badge ${Math.random() > 0.85 ? "danger" : "safe"}`;
+
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("resultDashboard").style.display = "grid";
+        } catch (err) {
+          alert("Failed to fetch profile: " + err.message);
+          document.getElementById("loading").style.display = "none";
+        }
+      }
+
+      // Events
+      document.getElementById("analyzeBtn").onclick = analyzeAddress;
+
+      document.getElementById("resetBtn").onclick = () => {
+        document.getElementById("addressInput").value = "";
+        document.getElementById("resultDashboard").style.display = "none";
+        startQR();
+      };
+
+      // Init
+      startQR();
+
+      // Pause/resume scanner for battery/privacy
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) stopQR();
+        else if (!isScanning) startQR();
+      });
+    </script>
+  </body>
+  from flask import Flask, request, jsonify import requests from bs4 import
+  BeautifulSoup from flask_cors import CORS import json app = Flask(__name__)
+  CORS(app) # Enable CORS for frontend calls @app.route('/api/detect_profile',
+  methods=['POST']) def detect_profile(): data = request.json platform =
+  data.get('platform') # 'instagram' or 'facebook' input_value =
+  data.get('input_value') # Username or URL if not platform or not input_value:
+  return jsonify({"error": "Missing platform or input"}), 400 # Normalize input:
+  Extract username from URL if provided if '://' in input_value: if platform ==
+  'instagram': username =
+  input_value.split('instagram.com/')[-1].strip('/').split('?')[0] elif platform
+  == 'facebook': username =
+  input_value.split('facebook.com/')[-1].strip('/').split('?')[0] else: return
+  jsonify({"error": "Unsupported platform"}), 400 else: username =
+  input_value.strip() if not username: return jsonify({"error": "Invalid
+  input"}), 400 headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64;
+  x64) AppleWebKit/537.36 (KHTML, KHTML, like Gecko) Chrome/91.0.4472.124
+  Safari/537.36' } try: if platform == 'instagram': url =
+  f"https://www.instagram.com/{username}/" resp = requests.get(url,
+  headers=headers) if resp.status_code != 200: return jsonify({"error": f"Failed
+  to fetch: {resp.status_code}"}), 500 soup = BeautifulSoup(resp.text,
+  'html.parser') meta_desc = soup.find('meta', property='og:description')
+  is_verified = meta_desc and 'Verified' in meta_desc.get('content', '') status
+  = "Original (Verified)" if is_verified else "Fake (Unverified)" details = {
+  "platform": "Instagram", "username": username, "status": status,
+  "profile_url": url, "note": "Verification based on meta tag. Samples: Real -
+  'instagram', Fake - 'randomtestuser123'" } elif platform == 'facebook': url =
+  f"https://www.facebook.com/{username}" resp = requests.get(url,
+  headers=headers) if resp.status_code != 200: return jsonify({"error": f"Failed
+  to fetch: {resp.status_code}"}), 500 soup = BeautifulSoup(resp.text,
+  'html.parser') # Look for verification in script JSON or text scripts =
+  soup.find_all('script', type='application/ld+json') is_verified = False for
+  script in scripts: try: data = json.loads(script.string) if 'verified' in
+  data.get('@graph', [{}])[0].get('author', {}).get('name', '').lower():
+  is_verified = True break except: pass if not is_verified: is_verified =
+  'verified account' in resp.text.lower() status = "Original (Verified)" if
+  is_verified else "Fake (Unverified)" details = { "platform": "Facebook",
+  "username": username, "status": status, "profile_url": url, "note":
+  "Verification based on page content. Samples: Real - 'facebook', Fake -
+  'nonexistentfbuser'" } else: return jsonify({"error": "Unsupported
+  platform"}), 400 return jsonify(details) except Exception as e: return
+  jsonify({"error": str(e)}), 500 if __name__ == '__main__':
+  app.run(debug=False, port=5000) # Run on http://localhost:5000
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>PS Detector • Social Profile Verifier</title>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      />
+      <style>
+        :root {
+          --bg: #0a0a15;
+          --card: #141426;
+          --text: #e2e8f0;
+          --muted: #94a3b8;
+          --primary: #6366f1;
+          --primary-dark: #4f46e5;
+          --green: #10b981;
+          --yellow: #f59e0b;
+          --red: #ef4444;
+          --border: #1e293b;
+        }
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: system-ui, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100vh;
+          padding: 1.5rem;
+        }
+        .container {
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+        header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2.5rem;
+        }
+        h1 {
+          font-size: 2.2rem;
+          font-weight: 700;
+          background: linear-gradient(90deg, #a5b4fc, #c084fc);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .app-name {
+          font-size: 1.8rem;
+          font-weight: 600;
+          color: #c7d2fe;
+        } /* Right side app name */
+        .scanner-section {
+          background: var(--card);
+          border-radius: 1.2rem;
+          padding: 2rem;
+          margin-bottom: 2.5rem;
+          border: 1px solid var(--border);
+          box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+        }
+        #reader {
+          width: 100%;
+          max-width: 460px;
+          margin: 0 auto 1.8rem;
+          border: 4px solid var(--primary);
+          border-radius: 1rem;
+          overflow: hidden;
+        }
+        .input-group {
+          display: flex;
+          gap: 1rem;
+          max-width: 700px;
+          margin: 0 auto;
+          align-items: center;
+        }
+        select,
+        input {
+          flex: 1;
+          padding: 1rem 1.3rem;
+          font-size: 1.1rem;
+          background: #0f172a;
+          border: 1px solid var(--border);
+          border-radius: 0.8rem;
+          color: white;
+          outline: none;
+        }
+        select {
+          flex: 0.5;
+        }
+        input:focus,
+        select:focus {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+        button {
+          padding: 0 2rem;
+          font-size: 1.1rem;
+          font-weight: 600;
+          background: var(--primary);
+          color: white;
+          border: none;
+          border-radius: 0.8rem;
+          cursor: pointer;
+          transition: 0.25s;
+        }
+        button:hover {
+          background: var(--primary-dark);
+          transform: translateY(-2px);
+        }
+        #loading {
+          display: none;
+          text-align: center;
+          padding: 4rem 0;
+          font-size: 1.3rem;
+          color: var(--muted);
+        }
+        #resultDashboard {
+          display: none;
+          grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+          gap: 1.8rem;
+          margin-top: 2.5rem;
+        }
+        .profile-card {
+          background: var(--card);
+          border-radius: 1.2rem;
+          padding: 1.8rem;
+          border: 1px solid var(--border);
+          transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .profile-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.4rem;
+        }
+        .card-title {
+          font-size: 1.4rem;
+          font-weight: 600;
+          color: #c7d2fe;
+        }
+        .badge {
+          padding: 0.5rem 1rem;
+          border-radius: 2rem;
+          font-size: 0.85rem;
+          font-weight: 600;
+        }
+        .original {
+          background: rgba(16, 185, 129, 0.2);
+          color: var(--green);
+        }
+        .fake {
+          background: rgba(239, 68, 68, 0.2);
+          color: var(--red);
+        }
+        .stat-row {
+          display: flex;
+          justify-content: space-between;
+          margin: 1rem 0;
+          font-size: 1rem;
+        }
+        .stat-label {
+          color: var(--muted);
+        }
+        .stat-value {
+          font-weight: 600;
+          color: white;
+        }
+        footer {
+          text-align: center;
+          margin-top: 4rem;
+          padding: 2rem;
+          color: var(--muted);
+          font-size: 0.95rem;
+          border-top: 1px solid var(--border);
+        }
+        @media (max-width: 768px) {
+          .input-group {
+            flex-direction: column;
+          }
+          button {
+            padding: 1rem;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <header>
+          <h1>PS Detector</h1>
+          <div class="app-name">PS DETECTOR</div>
+          <!-- Right side app name -->
+        </header>
+
+        <section class="scanner-section">
+          <div id="reader"></div>
+          <div class="input-group">
+            <select id="platformSelect">
+              <option value="">Select Platform</option>
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+            </select>
+            <input
+              type="text"
+              id="inputValue"
+              placeholder="Username or Profile URL (e.g., 'instagram' or 'https://www.instagram.com/instagram')"
+            />
+            <button id="detectBtn">Detect Profile</button>
+          </div>
+          <p style="color: var(--muted); margin-top: 1rem">
+            Samples: Instagram Real - 'instagram' (Original), Fake -
+            'randomtestuser123' (Fake). Facebook Real - 'facebook' (Original),
+            Fake - 'nonexistentfbuser' (Fake).
+          </p>
+        </section>
+
+        <div id="loading">
+          <i class="fas fa-spinner fa-spin"></i> Detecting profile...
+        </div>
+
+        <div id="resultDashboard">
+          <div class="profile-card">
+            <div class="card-header">
+              <div class="card-title">Profile Status</div>
+              <div class="badge" id="statusBadge">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Platform</div>
+              <div class="stat-value" id="platformValue">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Username</div>
+              <div class="stat-value" id="usernameValue">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Status</div>
+              <div class="stat-value" id="statusValue">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Profile URL</div>
+              <div class="stat-value" id="urlValue">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Note</div>
+              <div class="stat-value" id="noteValue">—</div>
+            </div>
+          </div>
+        </div>
+
+        <footer>
+          PS Detector • Social Profile Verifier • Educational Use Only
+        </footer>
+      </div>
+
+      <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+      <script>
+        const scanner = new Html5Qrcode("reader");
+        let isScanning = false;
+        const qrConfig = { fps: 12, qrbox: { width: 340, height: 340 } };
+
+        async function startQR() {
+          try {
+            await scanner.start(
+              { facingMode: "environment" },
+              qrConfig,
+              (text) => {
+                document.getElementById("inputValue").value = text.trim();
+                detectProfile();
+                stopQR();
+              },
+              () => {}
+            );
+            isScanning = true;
+          } catch (err) {
+            console.log("QR start failed:", err);
+          }
+        }
+
+        function stopQR() {
+          if (isScanning) {
+            scanner.stop();
+            isScanning = false;
+          }
+        }
+
+        async function detectProfile() {
+          const platform = document.getElementById("platformSelect").value;
+          const inputValue = document.getElementById("inputValue").value.trim();
+          if (!platform || !inputValue) {
+            alert("Select platform and enter username/URL");
+            return;
+          }
+
+          document.getElementById("loading").style.display = "block";
+          document.getElementById("resultDashboard").style.display = "none";
+
+          try {
+            const resp = await fetch(
+              "http://localhost:5000/api/detect_profile",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ platform, input_value: inputValue }),
+              }
+            );
+            const data = await resp.json();
+
+            if (data.error) throw new Error(data.error);
+
+            // Update dashboard
+            document.getElementById("platformValue").textContent =
+              data.platform;
+            document.getElementById("usernameValue").textContent =
+              data.username;
+            document.getElementById("statusValue").textContent = data.status;
+            document.getElementById(
+              "urlValue"
+            ).innerHTML = `<a href="${data.profile_url}" target="_blank">${data.profile_url}</a>`;
+            document.getElementById("noteValue").textContent = data.note;
+
+            const badge = document.getElementById("statusBadge");
+            badge.textContent = data.status.split(" ")[0];
+            badge.className = `badge ${
+              data.status.includes("Original") ? "original" : "fake"
+            }`;
+
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("resultDashboard").style.display = "grid";
+          } catch (err) {
+            alert("Detection failed: " + err.message);
+            document.getElementById("loading").style.display = "none";
+          }
+        }
+
+        document
+          .getElementById("detectBtn")
+          .addEventListener("click", detectProfile);
+        startQR(); // Start QR on load
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) stopQR();
+          else if (!isScanning) startQR();
+        });
+      </script>
+    </body>
+  </html>
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>PS Detector • Social Profile Verifier</title>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      />
+      <style>
+        :root {
+          --bg: #0a0a15;
+          --card: #141426;
+          --text: #e2e8f0;
+          --muted: #94a3b8;
+          --primary: #6366f1;
+          --primary-dark: #4f46e5;
+          --green: #10b981;
+          --yellow: #f59e0b;
+          --red: #ef4444;
+          --border: #1e293b;
+        }
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: system-ui, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100vh;
+          padding: 1.5rem;
+        }
+        .container {
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+        header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2.5rem;
+        }
+        h1 {
+          font-size: 2.2rem;
+          font-weight: 700;
+          background: linear-gradient(90deg, #a5b4fc, #c084fc);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .app-name {
+          font-size: 1.8rem;
+          font-weight: 600;
+          color: #c7d2fe;
+        } /* Right side app name */
+        .scanner-section {
+          background: var(--card);
+          border-radius: 1.2rem;
+          padding: 2rem;
+          margin-bottom: 2.5rem;
+          border: 1px solid var(--border);
+          box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+        }
+        #reader {
+          width: 100%;
+          max-width: 460px;
+          margin: 0 auto 1.8rem;
+          border: 4px solid var(--primary);
+          border-radius: 1rem;
+          overflow: hidden;
+        }
+        .input-group {
+          display: flex;
+          gap: 1rem;
+          max-width: 700px;
+          margin: 0 auto;
+          align-items: center;
+        }
+        select,
+        input {
+          flex: 1;
+          padding: 1rem 1.3rem;
+          font-size: 1.1rem;
+          background: #0f172a;
+          border: 1px solid var(--border);
+          border-radius: 0.8rem;
+          color: white;
+          outline: none;
+        }
+        select {
+          flex: 0.5;
+        }
+        input:focus,
+        select:focus {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+        button {
+          padding: 0 2rem;
+          font-size: 1.1rem;
+          font-weight: 600;
+          background: var(--primary);
+          color: white;
+          border: none;
+          border-radius: 0.8rem;
+          cursor: pointer;
+          transition: 0.25s;
+        }
+        button:hover {
+          background: var(--primary-dark);
+          transform: translateY(-2px);
+        }
+        #loading {
+          display: none;
+          text-align: center;
+          padding: 4rem 0;
+          font-size: 1.3rem;
+          color: var(--muted);
+        }
+        #resultDashboard {
+          display: none;
+          grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+          gap: 1.8rem;
+          margin-top: 2.5rem;
+        }
+        .profile-card {
+          background: var(--card);
+          border-radius: 1.2rem;
+          padding: 1.8rem;
+          border: 1px solid var(--border);
+          transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .profile-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.4rem;
+        }
+        .card-title {
+          font-size: 1.4rem;
+          font-weight: 600;
+          color: #c7d2fe;
+        }
+        .badge {
+          padding: 0.5rem 1rem;
+          border-radius: 2rem;
+          font-size: 0.85rem;
+          font-weight: 600;
+        }
+        .original {
+          background: rgba(16, 185, 129, 0.2);
+          color: var(--green);
+        }
+        .fake {
+          background: rgba(239, 68, 68, 0.2);
+          color: var(--red);
+        }
+        .stat-row {
+          display: flex;
+          justify-content: space-between;
+          margin: 1rem 0;
+          font-size: 1rem;
+        }
+        .stat-label {
+          color: var(--muted);
+        }
+        .stat-value {
+          font-weight: 600;
+          color: white;
+        }
+        footer {
+          text-align: center;
+          margin-top: 4rem;
+          padding: 2rem;
+          color: var(--muted);
+          font-size: 0.95rem;
+          border-top: 1px solid var(--border);
+        }
+        @media (max-width: 768px) {
+          .input-group {
+            flex-direction: column;
+          }
+          button {
+            padding: 1rem;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <header>
+          <h1>PS Detector</h1>
+          <div class="app-name">PS DETECTOR</div>
+          <!-- Right side app name -->
+        </header>
+
+        <section class="scanner-section">
+          <div id="reader"></div>
+          <div class="input-group">
+            <select id="platformSelect">
+              <option value="">Select Platform</option>
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+            </select>
+            <input
+              type="text"
+              id="inputValue"
+              placeholder="Username or Profile URL (e.g., 'instagram' or 'https://www.instagram.com/instagram')"
+            />
+            <button id="detectBtn">Detect Profile</button>
+          </div>
+          <p style="color: var(--muted); margin-top: 1rem">
+            Samples: Instagram Real - 'instagram' (Original), Fake -
+            'randomtestuser123' (Fake). Facebook Real - 'facebook' (Original),
+            Fake - 'nonexistentfbuser' (Fake).
+          </p>
+        </section>
+
+        <div id="loading">
+          <i class="fas fa-spinner fa-spin"></i> Detecting profile...
+        </div>
+
+        <div id="resultDashboard">
+          <div class="profile-card">
+            <div class="card-header">
+              <div class="card-title">Profile Status</div>
+              <div class="badge" id="statusBadge">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Platform</div>
+              <div class="stat-value" id="platformValue">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Username</div>
+              <div class="stat-value" id="usernameValue">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Status</div>
+              <div class="stat-value" id="statusValue">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Profile URL</div>
+              <div class="stat-value" id="urlValue">—</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">Note</div>
+              <div class="stat-value" id="noteValue">—</div>
+            </div>
+          </div>
+        </div>
+
+        <footer>
+          PS Detector • Social Profile Verifier • Educational Use Only
+        </footer>
+      </div>
+
+      <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+      <script>
+        const scanner = new Html5Qrcode("reader");
+        let isScanning = false;
+        const qrConfig = { fps: 12, qrbox: { width: 340, height: 340 } };
+
+        async function startQR() {
+          try {
+            await scanner.start(
+              { facingMode: "environment" },
+              qrConfig,
+              (text) => {
+                document.getElementById("inputValue").value = text.trim();
+                detectProfile();
+                stopQR();
+              },
+              () => {}
+            );
+            isScanning = true;
+          } catch (err) {
+            console.log("QR start failed:", err);
+          }
+        }
+
+        function stopQR() {
+          if (isScanning) {
+            scanner.stop();
+            isScanning = false;
+          }
+        }
+
+        async function detectProfile() {
+          const platform = document.getElementById("platformSelect").value;
+          const inputValue = document.getElementById("inputValue").value.trim();
+          if (!platform || !inputValue) {
+            alert("Select platform and enter username/URL");
+            return;
+          }
+
+          document.getElementById("loading").style.display = "block";
+          document.getElementById("resultDashboard").style.display = "none";
+
+          try {
+            const resp = await fetch(
+              "http://localhost:5000/api/detect_profile",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ platform, input_value: inputValue }),
+              }
+            );
+            const data = await resp.json();
+
+            if (data.error) throw new Error(data.error);
+
+            // Update dashboard
+            document.getElementById("platformValue").textContent =
+              data.platform;
+            document.getElementById("usernameValue").textContent =
+              data.username;
+            document.getElementById("statusValue").textContent = data.status;
+            document.getElementById(
+              "urlValue"
+            ).innerHTML = `<a href="${data.profile_url}" target="_blank">${data.profile_url}</a>`;
+            document.getElementById("noteValue").textContent = data.note;
+
+            const badge = document.getElementById("statusBadge");
+            badge.textContent = data.status.split(" ")[0];
+            badge.className = `badge ${
+              data.status.includes("Original") ? "original" : "fake"
+            }`;
+
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("resultDashboard").style.display = "grid";
+          } catch (err) {
+            alert("Detection failed: " + err.message);
+            document.getElementById("loading").style.display = "none";
+          }
+        }
+
+        document
+          .getElementById("detectBtn")
+          .addEventListener("click", detectProfile);
+        startQR(); // Start QR on load
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) stopQR();
+          else if (!isScanning) startQR();
+        });
+      </script>
+    </body>
+  </html>
+</html>
